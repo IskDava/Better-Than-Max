@@ -26,7 +26,10 @@
     </section>
   </main>
     <script>
-      const ws = new WebSocket(location.protocol === "https:" ? "wss://" : "ws://" + location.host);
+      const ws = new WebSocket(
+  (location.protocol === "https:" ? "wss://" : "ws://")
+  + location.host
+);
 
       ws.onmessage = e => {
         let li = document.createElement("li");
