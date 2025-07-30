@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="styles.css" rel="stylesheet">
+  <title>BetterThanMax</title>
+</head>
+<body>
+  <header>
+    <h1 class="centered">BetterThanMax</h1>
+    <p>and a full stop</p>
+  </header>
+  <main>
+    <h2 class="boxtitle">Login</h2>
+    <section class="pinkbox">
+      <input id="username" type="text" placeholder="Enter your username" required>
+    </section>
+    <h2 class="boxtitle">Global chat</h2>
+    <section class="pinkbox chatbox">
+      <ul id="chat"></ul>
+      <section id="inputbox">
+        <input id="msg" placeholder="Введите сообщение" />
+        <button onclick="sendMsg()"><img width="25" height="25" src="./images/sendicon.png" alt="chevron-up"/></button>
+      </section>
+    </section>
+  </main>
+    <script>
+      const ws = new WebSocket("ws://" + location.host);
+
+      ws.onmessage = e => {
+        let li = document.createElement("li");
+
+        const username = document.getElementById("username").value;
+        li.innerHTML = e.data;
+        li.classList.add("theirmessage")
+        li.classList.add("message")
+
+        document.getElementById("chat").appendChild(li);
+      };
+
+      document.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          sendMsg();
+          document.getElementById("chat").lastElementChild.scrollIntoView({ behavior: "smooth" });
+        }
+      })
+
+      const input = document.getElementById("msg");
+
+      input.addEventListener("focus", () => {
+        setTimeout(() => {
+        input.scrollIntoView({ behavior: "smooth", block: "end" });
+        }, 300);
+      });
+
+      function sendMsg() {
+        const input = document.getElementById("msg");
+        const username = document.getElementById("username");
+        if (!input.value.trim()) {
+          return;
+        }
+        if (!username.value.trim()) { 
+          username.value = "Guest" 
+        }
+        ws.send(`<span class="name">${username.value} </span><span class=\"msgcontent\">` + input.value + "</span>");
+
+        let li = document.createElement("li");
+        
+        li.innerHTML = "<span class=\"name\">Me <br></span><span class=\"msgcontent\">" + input.value + "</span>";
+        li.classList.add("minemessage");
+        li.classList.add("message")
+        document.getElementById("chat").appendChild(li);
+
+        input.value = "";
+      }
+    </script>
+  </body>
+</html>
