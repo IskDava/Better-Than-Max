@@ -12,14 +12,16 @@
     and a full stop
   </header>
   <main>
-    <h2 class="boxtitle" id="auth-title">Login</h2>
-    <section class="pinkbox">
-      <input id="username" type="" placeholder="Enter your username" required>
-      <input id="password" type="password" placeholder="Your password" required>
-      <span id="err"></span>
-      <button id="authenticate" type="submit" onclick="authenticate()"> Submit</button>
-      <p id="toggle-login-context">New? <button id='toggle-login' onclick="toggleLogin()">Sign up</button></p>
-    </section>
+    <article class="loginbox">
+      <h2 class="boxtitle" id="auth-title">Login</h2>
+      <section class="pinkbox">
+        <input id="username" type="" placeholder="Enter your username" required>
+        <input id="password" type="password" placeholder="Your password" required>
+        <span id="err"></span>
+        <button id="authenticate" type="submit" onclick="authenticate()"> Submit</button>
+        <p id="toggle-login-context">New? <button id='toggle-login' onclick="toggleLogin()">Sign up</button></p>
+      </section>
+    </article>
     <article class="chat" id="global-chat" hidden>
       <h2 class="boxtitle">Global chat</h2>
       <section class="pinkbox chatbox">
@@ -104,11 +106,12 @@
           }
 
           if (data.token) {
-            const token = data.token;
+            token = data.token;
             console.log(statuscode);
             err.innerText = "SUCCESS"
 
             localStorage.setItem("token", token);
+            localStorage.setItem("username", username);
 
             await fetchGlobalChat();
           }
@@ -128,12 +131,15 @@
       async function fetchGlobalChat() {
         const chats = document.querySelectorAll(".chat");
         chats.forEach(chat => chat.hidden = false);
+        const loginbox = document.querySelector(".loginbox");
+        loginbox.hidden = true;
         const response = await fetch(apiBase + 'chats/globalChat', {
-          headers: { 'Authorisation': token }
+          method: "GET",
+          headers: { 'Authorization': token }
         });
         const messages = await response.json();
         
-        if (messages.status != 200) {
+        if (response.status != 200) {
           const li = document.createElement("li");
 
           const username = "SystemWarning";
@@ -148,13 +154,14 @@
           const li = document.createElement("li");
 
           const username = message.sender.username;
-          li.innerHTML = message.content;
+          li.innerHTML = `<span class="name">${message.isMine ? "Me": message.sender.username} </span><span class=\"msgcontent\">${message.content}</span>`;
           li.classList.add(message.isMine ? "minemessage": "theirmessage");
           li.classList.add("message");
 
           document.getElementById("chat").appendChild(li);
         })
       }
+      
       const ws = new WebSocket("ws://" + location.host);
 
       ws.onmessage = e => {
@@ -183,16 +190,13 @@
         }, 300);
       });
 
-      function sendMsg() {
+      async function sendMsg() {
         const input = document.getElementById("msg");
         const username = document.getElementById("username");
         if (!input.value.trim()) {
           return;
         }
-        if (!username.value.trim()) { 
-          username.value = "Guest" 
-        }
-        ws.send(`<span class="name">${username.value} </span><span class=\"msgcontent\">` + input.value + "</span>");
+        ws.send(`<span class="name">${localStorage.getItem("username")} </span><span class=\"msgcontent\">` + input.value + "</span>");
 
         let li = document.createElement("li");
         
@@ -200,6 +204,12 @@
         li.classList.add("minemessage");
         li.classList.add("message")
         document.getElementById("chat").appendChild(li);
+
+        const response = await fetch(apiBase + "chats/globalChat", {
+          method: "POST",
+          headers: { 'Content-Type': 'application/json', 'Authorization': token },
+          body: JSON.stringify({ content: input.value, senderUsername: localStorage.getItem("username") }),
+        })
 
         input.value = "";
       }
