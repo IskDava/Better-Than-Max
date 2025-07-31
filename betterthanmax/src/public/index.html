@@ -34,7 +34,8 @@
     </article>
   </main>
     <script>
-      let token = localStorage.getItem('token')
+      let token = localStorage.getItem('token');
+      const publicVAPIDKey = "BN46Nf2_v1PHLf8JBehfnb3RBJlaVQ4XDRkcY8anb6Sw74C1__tzwGyb_SvZZr9W-eUfupl6rieMRVvs-ScNdHQ";
 
       let isLoggingIn = true;
       let isAuthenticating = false;
@@ -161,6 +162,7 @@
           document.getElementById("chat").appendChild(li);
         })
       }
+      
       const scheme = location.protocol === "https:" ? "wss:" : "ws:";
       const ws = new WebSocket(`${scheme}//${location.host}`);
 
@@ -173,6 +175,12 @@
         li.classList.add("message")
 
         document.getElementById("chat").appendChild(li);
+
+        const message = li.querySelector(".msgcontent").textContent.trim();
+        if ("serviceWorker" in navigator) {
+          console.log(message);
+          sendPushNotification(message).catch((err) => console.error(err));
+        }
       };
 
       document.addEventListener("keydown", e => {
@@ -212,6 +220,40 @@
         })
 
         input.value = "";
+      }
+    
+      async function sendPushNotification(message) {
+        const register = await navigator.serviceWorker.register("../sw.js", {
+          scope: "/",
+        });
+
+        const subscription = await register.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicVAPIDKey),
+        });
+
+        await fetch(apiBase + `notification?message=${encodeURIComponent(message)}`, {
+          method: "POST",
+          body: JSON.stringify(subscription),
+          headers: {
+            "content-type": "application/json",
+          }
+        });
+      }
+
+      function urlBase64ToUint8Array(base64String) {
+        const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+        const base64 = (base64String + padding)
+          .replace(/\-/g, "+")
+          .replace(/_/g, "/");
+
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+
+        for (let i = 0; i < rawData.length; ++i) {
+          outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
       }
     </script>
   </body>

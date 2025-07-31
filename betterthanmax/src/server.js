@@ -4,6 +4,7 @@ import { WebSocketServer } from 'ws'
 import path from 'path'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
+import PushNotifications from 'node-pushnotifications'
 import authRoutes from './routes/authRoutes.js'
 import globalChatRoutes from './routes/globalChatRoutes.js'
 import authMiddleware from './middleware/authMiddleware.js'
@@ -36,6 +37,44 @@ wss.on("connection", ws => {
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json())
+
+const publicVAPIDKey = "BN46Nf2_v1PHLf8JBehfnb3RBJlaVQ4XDRkcY8anb6Sw74C1__tzwGyb_SvZZr9W-eUfupl6rieMRVvs-ScNdHQ";
+const privateVAPIDKey = process.env.PRIVATE_VAPID_KEY;
+console.log(privateVAPIDKey)
+
+app.post("/notification", (req, res) => {
+    const subscribtion = req.body;
+    const { message } = req.query;
+    
+    const settings = {
+        web: {
+            vapidDetails: {
+                subject: "mailto: <davidiskieveshton@gmail.com>",
+                publicKey: publicVAPIDKey,
+                privateKey: privateVAPIDKey
+            },
+            gcmAPIKey: "gcmkey",
+            TTL: 2419200,
+            contentEncoding: "aes128gcm",
+            headers: {},
+        },
+        isAlwaysUseFCM: false
+    };
+
+    const push = new PushNotifications(settings);
+
+    const payload = { 
+        title: "You got a message:",
+        body: message
+    };
+    push.send(subscribtion, payload, (err, result) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log(result);
+        }
+    })
+})
 
 app.use('/auth', authRoutes);
 app.use('/chats/globalChat', authMiddleware, globalChatRoutes);
