@@ -1,0 +1,2 @@
+### GET /asd
+GET http://localhost:2727/asd

@@ -9,23 +9,152 @@
 <body>
   <header>
     <h1 class="centered">BetterThanMax</h1>
-    <p>and a full stop</p>
+    and a full stop
   </header>
   <main>
-    <h2 class="boxtitle">Login</h2>
+    <h2 class="boxtitle" id="auth-title">Login</h2>
     <section class="pinkbox">
-      <input id="username" type="text" placeholder="Enter your username" required>
+      <input id="username" type="" placeholder="Enter your username" required>
+      <input id="password" type="password" placeholder="Your password" required>
+      <span id="err"></span>
+      <button id="authenticate" type="submit" onclick="authenticate()"> Submit</button>
+      <p id="toggle-login-context">New? <button id='toggle-login' onclick="toggleLogin()">Sign up</button></p>
     </section>
-    <h2 class="boxtitle">Global chat</h2>
-    <section class="pinkbox chatbox">
-      <ul id="chat"></ul>
-      <section id="inputbox">
-        <input id="msg" placeholder="Введите сообщение" />
-        <button onclick="sendMsg()"><img width="25" height="25" src="./images/sendicon.png" alt="chevron-up"/></button>
+    <article class="chat" id="global-chat" hidden>
+      <h2 class="boxtitle">Global chat</h2>
+      <section class="pinkbox chatbox">
+        <ul id="chat"></ul>
+        <section id="inputbox">
+          <input id="msg" placeholder="Start typing..." />
+          <button onclick="sendMsg()"><img width="25" height="25" src="./images/sendicon.png" alt="chevron-up"/></button>
+        </section>
       </section>
-    </section>
+    </article>
   </main>
     <script>
+      let token = localStorage.getItem('token')
+
+      let isLoggingIn = true;
+      let isAuthenticating = false;
+
+      const apiBase = '/';
+
+      function toggleLogin() {
+        const authTitle = document.getElementById('auth-title');
+        const toggleContext = document.getElementById('toggle-login-context');
+        
+        if (isLoggingIn) {
+          authTitle.innerText = "Register";
+          toggleContext.innerHTML = `Old? <button id='toggle-login' onclick=\"toggleLogin()\">Sign in</button>`;
+          isLoggingIn = false;
+        }
+        else {
+          authTitle.innerText = "Login";
+          toggleContext.innerHTML = `New?
+          <button id='toggle-login' onclick=\"toggleLogin()\">Sign up</button>`;
+          isLoggingIn = true;
+        }
+      }
+
+      async function authenticate() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const submitBtn = document.getElementById("authenticate");
+        
+        const err = document.getElementById('err');
+        if (!username) {
+          err.innerText = "Username is required";
+        } else if (!password) {
+          err.innerText = "Password is required";
+        } else if (password.length < 6) {
+          err.innerText = "Password must be at least 6 characters long";
+        } else if (isAuthenticating) {
+          err.innerText = "Already authenticating. Wait please..."
+        } 
+        else {
+          err.innerText = "";
+        }
+
+        if (err.innerText != "") {
+          return;
+        }
+
+        isAuthenticating = true;
+        submitBtn.innerText = "Authenticating...";
+
+        try {
+          let data, statuscode;
+          if (isLoggingIn) {
+            const response = await fetch(apiBase + 'auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, password: password })
+                })
+            data = await response.json()
+            statuscode = response.status;
+          }
+          else {
+            const response = await fetch(apiBase + 'auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, password: password })
+                })
+            data = await response.json()
+            statuscode = response.status;
+          }
+
+          if (data.token) {
+            const token = data.token;
+            console.log(statuscode);
+            err.innerText = "SUCCESS"
+
+            localStorage.setItem("token", token);
+
+            await fetchGlobalChat();
+          }
+          else if (statuscode % 100 != 2) {
+            err.innerText = data.message;
+          }
+          
+        } catch (err) {
+          console.log(err);
+          err.innerText = err;
+        } finally {
+          submitBtn.innerText = "Submit";
+          isAuthenticating = false;
+        }
+      }
+
+      async function fetchGlobalChat() {
+        const chats = document.querySelectorAll(".chat");
+        chats.forEach(chat => chat.hidden = false);
+        const response = await fetch(apiBase + 'chats/globalChat', {
+          headers: { 'Authorisation': token }
+        });
+        const messages = await response.json();
+        
+        if (messages.status != 200) {
+          const li = document.createElement("li");
+
+          const username = "SystemWarning";
+          li.innerHTML = messages.message;
+          li.classList.add("minemessage");
+          li.classList.add("message");
+
+          document.getElementById("chat").appendChild(li);
+        }
+
+        messages.forEach(message => {
+          const li = document.createElement("li");
+
+          const username = message.sender.username;
+          li.innerHTML = message.content;
+          li.classList.add(message.isMine ? "minemessage": "theirmessage");
+          li.classList.add("message");
+
+          document.getElementById("chat").appendChild(li);
+        })
+      }
       const ws = new WebSocket("ws://" + location.host);
 
       ws.onmessage = e => {

@@ -40,7 +40,6 @@ header {
     margin-top: 10px;
     margin-bottom: 10px;
 }
-
 h1 {    
     font-size: clamp(45px, 6vw, 85px);
     margin-bottom: 2px;
@@ -109,9 +108,20 @@ main {
 
 input {
     border: 0;
-    padding: 3px;
+    padding: 5px;
     border-radius: 3px;
     color: black;
+    width: fit-content;
+}
+#username, #password, #authenticate, #toggle-login-context, #err {
+    margin: 5px;
+}
+#authenticate {
+    width:fit-content;
+    font-size: 15px;
+}
+#toggle-login-context, #toggle-login-context > button {
+    font-size: 11px;
 }
 input:active, input:focus {
     outline: 0;
@@ -122,4 +132,9 @@ button {
     background-color: hsl(350, 100%, 90%);
     color: white;
     padding: 3px 5px;
+}
+
+#err {
+    color: red;
+    font-size: 12px;
 }

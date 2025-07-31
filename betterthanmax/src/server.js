@@ -4,6 +4,9 @@ import { WebSocketServer } from 'ws'
 import path from 'path'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
+import authRoutes from './routes/authRoutes.js'
+import globalChatRoutes from './routes/globalChatRoutes.js'
+import authMiddleware from './middleware/authMiddleware.js'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -11,7 +14,7 @@ const __dirname = dirname(__filename);
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
-const PORT = process.env.PORT ||  2727;
+const PORT = process.env.PORT;
 
 let clients = [];
 
@@ -32,6 +35,10 @@ wss.on("connection", ws => {
 });
 
 app.use(express.static(path.join(__dirname, "public")));
+app.use(express.json())
+
+app.use('/auth', authRoutes);
+app.use('/chats/globalChat', authMiddleware, globalChatRoutes);
 
 server.listen(PORT, () => {
     console.log(`Server started on http://localhost:${PORT}`);
