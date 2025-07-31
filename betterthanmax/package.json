@@ -11,6 +11,7 @@
   "license": "ISC",
   "description": "messenger better than Max that doesn't steal your data and it won't ban tellegram",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "express": "^5.1.0",
     "nodemon": "^3.1.10",
     "ws": "^8.18.3"
