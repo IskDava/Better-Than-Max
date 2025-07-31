@@ -161,11 +161,8 @@
           document.getElementById("chat").appendChild(li);
         })
       }
-      try {
-        const ws = new WebSocket("ws://" + location.host);
-      } catch {
-        const ws = new WebSocket("wss://", location.host)
-      }
+      const scheme = location.protocol === "https:" ? "wss:" : "ws:";
+      const ws = new WebSocket(`${scheme}//${location.host}`);
 
       ws.onmessage = e => {
         let li = document.createElement("li");
