@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node src/server.js",
-    "dbg": "node --watch --env-file=.env src/server.js"
+    "dbg": "node --watch --loader ts-node/esm --env-file=.env src/server.js"
   },
   "keywords": [],
   "author": "Dava",
@@ -13,10 +13,18 @@
   "description": "messenger better than Max that doesn't steal your data and it won't ban tellegram",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "better-sqlite3": "^12.2.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "node-pushnotifications": "^3.1.1",
     "nodemon": "^3.1.10",
+    "web-push": "^3.6.7",
     "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
   }
 }
