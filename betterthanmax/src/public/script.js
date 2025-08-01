@@ -1,5 +1,5 @@
 let token = localStorage.getItem('token');
-const publicVAPIDKey = "BN46Nf2_v1PHLf8JBehfnb3RBJlaVQ4XDRkcY8anb6Sw74C1__tzwGyb_SvZZr9W-eUfupl6rieMRVvs-ScNdHQ";
+const publicVAPIDKey = "BCNIzgwqLoxQBoZjk8wLg5Lxaprlc6wkXXZ-94GljbD5OORZHGduHrzc2p8eJv16mt9tHftDlgNLVEmn4a6ZK1U";
 
 let isLoggingIn = true;
 let isAuthenticating = false;

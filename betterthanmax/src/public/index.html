@@ -15,8 +15,14 @@
     <article class="loginbox">
       <h2 class="boxtitle" id="auth-title">Login</h2>
       <section class="pinkbox">
-        <input id="username" type="" placeholder="Enter your username" required>
-        <input id="password" type="password" placeholder="Your password" required>
+        <label for="username">
+          Username:
+          <input id="username" type="" placeholder="Enter your username" required>
+        </label>
+        <label for="password">
+          Password:
+          <input id="password" type="password" placeholder="Your password" required>
+        </label>
         <span id="err"></span>
         <button id="authenticate" type="submit" onclick="authenticate()"> Submit</button>
         <p id="toggle-login-context">New? <button id='toggle-login' onclick="toggleLogin()">Sign up</button></p>

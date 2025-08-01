@@ -9,7 +9,7 @@ router.get('/', (req, res) => {
     const getUserById = db.prepare(`SELECT * FROM users WHERE id = ?`)
 
     const messages = getMessages.all();
-    console.log(messages);
+    
     let result = [];
     messages.forEach(message => {
         const sender = {
@@ -22,7 +22,6 @@ router.get('/', (req, res) => {
             sender,
             isMine: sender.id == req.userId
         });
-        console.log(result)
     });
     res.status(200).json(result)
 })
@@ -37,7 +36,6 @@ router.post('/', (req, res) => {
     const insertMessage = db.prepare(`INSERT INTO globalchat_messages (content, sender_id) VALUES (?, ?)`);
     insertMessage.run(content, senderId);
 
-    console.log("Added message");
     res.sendStatus(201);
 })
 
