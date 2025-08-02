@@ -39,7 +39,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json())
 app.use(bodyParser.json())
 
-const publicVAPIDKey = "BCNIzgwqLoxQBoZjk8wLg5Lxaprlc6wkXXZ-94GljbD5OORZHGduHrzc2p8eJv16mt9tHftDlgNLVEmn4a6ZK1U";
+const publicVAPIDKey = "BIbnV-bRqaSp8IOKCHemISYf1RKQeSXkXB_QsfLC0x2pdatkr-spzj8TF_Wy-cRukUnWddrodRggRt5bWLWnwAE";
 const privateVAPIDKey = process.env.PRIVATE_VAPID_KEY;
 
 webpush.setVapidDetails(

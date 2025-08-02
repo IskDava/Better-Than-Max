@@ -1,5 +1,5 @@
 let token = localStorage.getItem('token');
-const publicVAPIDKey = "BCNIzgwqLoxQBoZjk8wLg5Lxaprlc6wkXXZ-94GljbD5OORZHGduHrzc2p8eJv16mt9tHftDlgNLVEmn4a6ZK1U";
+const publicVAPIDKey = "BIbnV-bRqaSp8IOKCHemISYf1RKQeSXkXB_QsfLC0x2pdatkr-spzj8TF_Wy-cRukUnWddrodRggRt5bWLWnwAE";
 
 let isLoggingIn = true;
 let isAuthenticating = false;
@@ -73,14 +73,13 @@ async function authenticate() {
         }
 
         if (data.token) {
-        token = data.token;
-        console.log(statuscode);
-        err.innerText = "SUCCESS"
+            token = data.token;
+            console.log(statuscode);
+            err.innerText = "SUCCESS"
 
-        localStorage.setItem("token", token);
-        localStorage.setItem("username", username);
+            sessionStorage.setItem("token", token);
 
-        await fetchGlobalChat();
+            await fetchGlobalChat();
         }
         else if (statuscode % 100 != 2) {
         err.innerText = data.message;
@@ -136,7 +135,7 @@ ws.onmessage = e => {
     scrollToChatInput();
 
     const data = JSON.parse(e.data);
-    const isMine = data.name == localStorage.getItem("username");
+    const isMine = data.name == sessionStorage.getItem("username"); //!
 
     let li = createMessage(isMine? "Me": data.name, data.content, isMine);
 
@@ -168,14 +167,14 @@ async function sendMsg() {
         return;
     }
 
-    ws.send(JSON.stringify({name: localStorage.getItem("username"), content: input.value}));
+    ws.send(JSON.stringify({token: token, content: input.value}));
 
     createMessage("Me", input.value, true);
 
     await fetch(apiBase + "chats/globalChat", {
         method: "POST",
         headers: { 'Content-Type': 'application/json', 'Authorization': token },
-        body: JSON.stringify({ content: input.value, senderUsername: localStorage.getItem("username") }),
+        body: JSON.stringify({ content: input.value, senderUsername: sessionStorage.getItem("username") }),
     });
 
     input.value = "";
