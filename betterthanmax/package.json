@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node src/server.js",
-    "dbg": "node --watch --loader ts-node/esm --env-file=.env src/server.js"
+    "dbg": "node --watch --env-file=.env src/server.js"
   },
   "keywords": [],
   "author": "Dava",

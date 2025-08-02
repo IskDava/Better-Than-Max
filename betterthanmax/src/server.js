@@ -23,11 +23,10 @@ let clients = [];
 wss.on("connection", ws => {
     clients.push(ws);
     ws.on("message", message => {
-        const text = message.toString();
 
         clients.forEach(client => {
             if (client !== ws && client.readyState === WebSocket.OPEN) {
-                client.send(text);
+                client.send(message.toString());
             }
         });
     });

@@ -4,6 +4,8 @@ const publicVAPIDKey = "BCNIzgwqLoxQBoZjk8wLg5Lxaprlc6wkXXZ-94GljbD5OORZHGduHrzc
 let isLoggingIn = true;
 let isAuthenticating = false;
 
+let messages = [];
+
 const apiBase = '/';
 
 function toggleLogin() {
@@ -133,18 +135,13 @@ const ws = new WebSocket(`${scheme}//${location.host}`);
 ws.onmessage = e => {
     scrollToChatInput();
 
-    let li = document.createElement("li");
+    const data = JSON.parse(e.data);
+    const isMine = data.name == localStorage.getItem("username");
 
-    const username = document.getElementById("username").value;
-    li.innerHTML = e.data;
-    li.classList.add("theirmessage")
-    li.classList.add("message")
-
-    document.getElementById("chat").appendChild(li);
+    let li = createMessage(isMine? "Me": data.name, data.content, isMine);
 
     const message = li.querySelector(".msgcontent").textContent.trim();
     if ("serviceWorker" in navigator) {
-        console.log(message);
         sendPushNotification(message).catch((err) => console.error(err));
     }
 };
@@ -171,24 +168,19 @@ async function sendMsg() {
         return;
     }
 
-    ws.send(`<span class="name">${localStorage.getItem("username")} </span><span class=\"msgcontent\">` + input.value + "</span>");
+    ws.send(JSON.stringify({name: localStorage.getItem("username"), content: input.value}));
 
-    let li = document.createElement("li");
-
-    li.innerHTML = "<span class=\"name\">Me <br></span><span class=\"msgcontent\">" + input.value + "</span>";
-    li.classList.add("minemessage");
-    li.classList.add("message")
-    document.getElementById("chat").appendChild(li);
-
-    input.value = "";
-
-    scrollToChatInput(true);
+    createMessage("Me", input.value, true);
 
     await fetch(apiBase + "chats/globalChat", {
         method: "POST",
         headers: { 'Content-Type': 'application/json', 'Authorization': token },
         body: JSON.stringify({ content: input.value, senderUsername: localStorage.getItem("username") }),
     });
+
+    input.value = "";
+
+    scrollToChatInput(true);
 }
 
 async function sendPushNotification(message) {
@@ -223,4 +215,22 @@ function urlBase64ToUint8Array(base64String) {
         outputArray[i] = rawData.charCodeAt(i);
     }
     return outputArray;
+}
+
+function createMessage(name, content, isMine) {
+    let li = document.createElement("li");
+
+    li.innerHTML = `<span class=\"name\">${name} <br></span><span class=\"msgcontent\">${content}</span>`;
+
+    li.classList.add(isMine? "minemessage": "theirmessage");
+    li.classList.add("message");
+
+    document.getElementById("chat").appendChild(li);
+
+    li.addEventListener("mousedown", (e) => {
+        if (e.button == 0) {
+            console.log("it worked!")
+        }
+    });
+    return li;
 }
