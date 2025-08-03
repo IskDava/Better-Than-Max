@@ -67,8 +67,8 @@ async function authenticate() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: username, password: password })
-            })
-        data = await response.json()
+            });
+        data = await response.json();
         statuscode = response.status;
         }
 
@@ -77,7 +77,7 @@ async function authenticate() {
             console.log(statuscode);
             err.innerText = "SUCCESS"
 
-            sessionStorage.setItem("token", token);
+            localStorage.setItem("token", token);
 
             await fetchGlobalChat();
         }
@@ -132,17 +132,26 @@ const scheme = location.protocol === "https:" ? "wss:" : "ws:";
 const ws = new WebSocket(`${scheme}//${location.host}`);
 
 ws.onmessage = e => {
-    scrollToChatInput();
+    console.log("Got a message!")
 
+    console.log("Recieving data");
     const data = JSON.parse(e.data);
-    const isMine = data.name == sessionStorage.getItem("username"); //!
 
+    console.log("Authorizing sender");
+    const isMine = data.name == getUsername();
+
+    console.log("Showing message in the chat");
     let li = createMessage(isMine? "Me": data.name, data.content, isMine);
 
     const message = li.querySelector(".msgcontent").textContent.trim();
+
+    console.log("Sending push notification...")
     if ("serviceWorker" in navigator) {
         sendPushNotification(message).catch((err) => console.error(err));
     }
+
+    console.log("Scrolling down")
+    scrollToChatInput();
 };
 
 function scrollToChatInput(scrollView = false) {
@@ -161,24 +170,34 @@ document.addEventListener("keydown", e => {
 })
 
 async function sendMsg() {
+    console.log("Scanning input value");
     const input = document.getElementById("msg");
 
     if (!input.value.trim()) {
+        console.warn("Nothing in input, so canceling sending");
         return;
     }
 
+    console.log("Sending message to other user(-s)");
     ws.send(JSON.stringify({token: token, content: input.value}));
 
+    console.log("Showing the message in local chat");
     createMessage("Me", input.value, true);
 
+    console.log("Clarifying user's name");
+    const username = await getUsername();
+
+    console.log("Adding message to the database");
     await fetch(apiBase + "chats/globalChat", {
         method: "POST",
         headers: { 'Content-Type': 'application/json', 'Authorization': token },
-        body: JSON.stringify({ content: input.value, senderUsername: sessionStorage.getItem("username") }),
+        body: JSON.stringify({ content: input.value, senderUsername: username }),
     });
 
+    console.log("Clearing input");
     input.value = "";
 
+    console.log("Scrolling down");
     scrollToChatInput(true);
 }
 
@@ -232,4 +251,20 @@ function createMessage(name, content, isMine) {
         }
     });
     return li;
+}
+
+async function getUsername() {
+    console.log("Authentificating user's name")
+    const response = await fetch(apiBase + 'security/getusername', {
+        method: 'GET',
+        headers: { 'Authorization': token }
+    });
+    data = await response.json();
+
+    if (response.status != 200) {
+        console.error(data.message);
+    } else {
+        console.log(`Username is found successfuly: ${data.name}`);
+        return data.name;
+    }
 }

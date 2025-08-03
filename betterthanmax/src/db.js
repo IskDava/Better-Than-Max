@@ -1,5 +1,12 @@
 import { DatabaseSync } from 'node:sqlite'
-const db = new DatabaseSync('./src/databases/main.db');
+
+let db;
+try {
+    db = new DatabaseSync('./src/databases/experimental.db');
+} catch {
+    db = new DatabaseSync(':memory:');
+    console.warn("Not found experimental.db, so will use memory (you may do nothing if you see this while deploying");
+}
 
 try {
     db.exec(`

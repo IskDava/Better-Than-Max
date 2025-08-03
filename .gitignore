@@ -1,3 +1,5 @@
 betterthanmax/.env
 
 betterthanmax/node-modules
+
+./src/databases/
